@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABYSSAL LANTERN — a deep-sea survival roguelite</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="shell">
+  <canvas id="game" width="1280" height="800"></canvas>
+
+  <!-- ============ HUD (visible while playing) ============ -->
+  <div id="hud">
+    <div class="hud-top-left">
+      <div class="bar-row">
+        <span id="level-badge" class="level-badge">1</span>
+        <div class="bar hp-bar"><div id="hp-fill" class="fill"></div><span id="hp-text" class="bar-text">100 / 100</span></div>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">XP</span>
+        <div class="bar xp-bar"><div id="xp-fill" class="fill"></div><span id="xp-text" class="bar-text">LV 1</span></div>
+      </div>
+    </div>
+
+    <div class="hud-top-center">
+      <div id="timer" class="timer">5:00</div>
+      <div class="wave-row"><span id="wave-label">WAVE 1</span><span class="dot">·</span><span id="tier-label">Twilight Reach</span></div>
+      <div id="boss-bar" class="boss-bar hidden">
+        <span id="boss-name">LEVIATHAN</span>
+        <div class="bar"><div id="boss-fill" class="fill"></div></div>
+      </div>
+    </div>
+
+    <div class="hud-top-right">
+      <div class="score-box"><span class="score-label">SCORE</span><span id="score">0</span></div>
+      <div id="kills" class="kills">0 slain</div>
+      <div id="combo" class="combo hidden">COMBO x2</div>
+      <button id="mute-btn" class="mute-btn" title="Mute (M)">🔊</button>
+    </div>
+
+    <div class="hud-bottom-left">
+      <div id="weapons" class="weapons"></div>
+    </div>
+
+    <div class="hud-bottom-right">
+      <div class="dash-box">
+        <span class="dash-label">DASH [Space]</span>
+        <div class="bar dash-bar"><div id="dash-fill" class="fill ready"></div></div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+  </div>
+
+  <!-- ============ TITLE ============ -->
+  <div id="screen-title" class="screen">
+    <div class="title-inner">
+      <div class="title-kicker">A DEEP-SEA SURVIVAL ROGUELITE</div>
+      <h1 class="title-name">ABYSSAL<br>LANTERN</h1>
+      <p class="title-story">You are Neria, the last lanternfish. The Garden's light is failing, and
+        the dark has sent its swarm to finish it. Survive <b>5:00</b>, level up, forge your
+        arsenal — and light the Garden again.</p>
+      <button id="start-btn" class="big-btn">▶ &nbsp;DIVE IN</button>
+      <div class="controls-grid">
+        <div><b>WASD / Arrows</b><span>Swim</span></div>
+        <div><b>Mouse</b><span>Aim the Sun Harpoon</span></div>
+        <div><b>Space</b><span>Dash (briefly untouchable)</span></div>
+        <div><b>1 / 2 / 3 or Click</b><span>Pick a level-up card</span></div>
+        <div><b>P / Esc</b><span>Pause</span></div>
+        <div><b>R</b><span>Restart after a run</span></div>
+        <div><b>M</b><span>Sound on / off</span></div>
+      </div>
+      <div id="bestiary" class="bestiary">
+        <div class="beast"><span class="beast-dot" style="background:#8ecae6"></span><b>Gloomlet</b><span>slow, numberless</span></div>
+        <div class="beast"><span class="beast-dot" style="background:#ffafcc"></span><b>Darter</b><span>lunges in bursts</span></div>
+        <div class="beast"><span class="beast-dot" style="background:#b5179e"></span><b>Bulwark</b><span>a walking reef</span></div>
+        <div class="beast"><span class="beast-dot" style="background:#80ed99"></span><b>Splitter</b><span>splits when slain</span></div>
+        <div class="beast"><span class="beast-dot" style="background:#ffca3a"></span><b>Spitter</b><span>spits ink at range</span></div>
+        <div class="beast"><span class="beast-dot" style="background:#ff5964"></span><b>Leviathan</b><span>the boss</span></div>
+      </div>
+      <p class="title-foot">A complete game: survive, level up, beat the Leviathans — made for the make.fun best-game bounty.</p>
+    </div>
+  </div>
+
+  <!-- ============ PAUSE ============ -->
+  <div id="screen-pause" class="screen hidden">
+    <div class="panel">
+      <h2>PAUSED</h2>
+      <p class="panel-sub">The dark waits. It is patient. You should not be.</p>
+      <div class="build-line"><span>Your build:</span><b id="pause-build">—</b></div>
+      <div class="btn-row">
+        <button id="resume-btn" class="big-btn">RESUME</button>
+        <button data-restart class="big-btn ghost">RESTART RUN</button>
+      </div>
+      <p class="panel-hint">WASD swim · Space dash · Mouse aims the harpoon · P resumes</p>
+    </div>
+  </div>
+
+  <!-- ============ LEVEL UP ============ -->
+  <div id="screen-levelup" class="screen hidden">
+    <div class="panel wide">
+      <h2>✦ LEVEL UP ✦</h2>
+      <p class="panel-sub">The lantern burns brighter. Choose a boon — click it, or press 1, 2, 3.</p>
+      <div id="levelup-cards" class="cards"></div>
+    </div>
+  </div>
+
+  <!-- ============ GAME OVER ============ -->
+  <div id="screen-over" class="screen hidden">
+    <div class="panel">
+      <h2 class="over-title">THE LIGHT GOES OUT</h2>
+      <p class="panel-sub">The swarm takes the Garden — this time. The lantern remembers.</p>
+      <div id="over-stats" class="stats"></div>
+      <div class="btn-row">
+        <button data-restart class="big-btn">↻ &nbsp;DIVE AGAIN</button>
+      </div>
+      <p class="panel-hint">Press R to restart at once.</p>
+    </div>
+  </div>
+
+  <!-- ============ VICTORY ============ -->
+  <div id="screen-win" class="screen hidden">
+    <div class="panel">
+      <h2 class="win-title">✦ THE GARDEN BLOOMS ✦</h2>
+      <p class="panel-sub">Five minutes in the dark, and the light held. The abyss is a garden again.</p>
+      <div id="win-stats" class="stats"></div>
+      <div class="btn-row">
+        <button data-restart class="big-btn">↻ &nbsp;DIVE AGAIN</button>
+      </div>
+      <p class="panel-hint">Press R to run it back — can you beat the score?</p>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
